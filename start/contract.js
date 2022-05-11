@@ -31,6 +31,10 @@ The `piggybankContract` is compiled from:
 */
 
 const forwarderOrigin = "http://localhost:9010";
+//Basic Actions Section
+const onboardButton = document.getElementById("connectButton");
+const getAccountsButton = document.getElementById("getAccounts");
+const getAccountsResult = document.getElementById("getAccountsResult");
 
 const initialize = () => {
   const onboardButton = document.getElementById("connectButton");
@@ -54,8 +58,19 @@ const initialize = () => {
     onboarding.startOnboarding();
   };
 
+  const onClickConnect = async () => {
+    try {
+      // Will open the MetaMask UI
+      // You should disable this button while the request is pending!
+      await ethereum.request({ method: "eth_requestAccounts" });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const MetaMaskClientCheck = () => {
     if (!isMetamaskInstalled()) {
+      // ****** MetaMask "NOT INSTALLED" Dapp Flow ******
       //If it isn't installed we ask the user to click to install it
       onboardButton.innerText = "Click here to install MetaMask!";
       //When the button is clicked we call onClickInstall
@@ -63,9 +78,22 @@ const initialize = () => {
       //The button is now disabled
       onboardButton.disabled = false;
     } else {
+      // ****** MetaMask "INSTALLED" Dapp Flow ******
       onboardButton.innerText = "Connect";
+      //When the button is clicked we call this function to connect the users MetaMask Wallet
+      onboardButton.onclick = onClickConnect;
+      //The button is now disabled
+      onboardButton.disabled = false;
     }
   };
   MetaMaskClientCheck();
+
+  //Eth_Accounts-getAccountsButton
+  getAccountsButton.addEventListener("click", async () => {
+    //we use eth_accounts because it returns a list of addresses owned by us.
+    const accounts = await ethereum.request({ method: "eth_accounts" });
+    //We take the first address in the array of addresses and display it
+    getAccountsResult.innerHTML = accounts[0] || "Not able to get accounts";
+  });
 };
 window.addEventListener("DOMContentLoaded", initialize);
